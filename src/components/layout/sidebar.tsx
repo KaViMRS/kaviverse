@@ -21,7 +21,6 @@ import {
   Bot,
   Settings,
   Shield,
-  Activity,
   Sparkles,
   ChevronRight,
   ChevronDown,
@@ -283,34 +282,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* ── Footer Connection Card ── */}
-      <div className="px-3 pb-4 mt-auto">
-        <div
-          className="rounded-xl p-3.5 relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(25,197,158,0.08) 0%, rgba(59,130,246,0.05) 100%)",
-            border: "1px solid rgba(25,197,158,0.15)",
-          }}
-        >
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-accent" />
-              Sistem Cloud
-            </span>
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-accent">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
-              </span>
-              Online
-            </div>
-          </div>
-          <p className="text-[10px] text-text-muted leading-relaxed">
-            Telegram Bot &amp; Google Sheets<br />sinkron secara real-time
-          </p>
-        </div>
-      </div>
     </aside>
   );
 }
