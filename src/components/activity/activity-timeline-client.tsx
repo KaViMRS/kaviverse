@@ -25,6 +25,7 @@ export interface ActivityEventItem {
   bg: string;
   border: string;
   iconType: "finance" | "drive" | "system";
+  sortTimestamp?: number;
 }
 
 interface ActivityTimelineClientProps {

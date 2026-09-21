@@ -9,6 +9,43 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function describeAuditEvent(event: Awaited<ReturnType<typeof getAuditEvents>>[number]) {
+  const actor = event.actorEmail || "Sistem";
+  const target = event.targetId ? ` • ID: ${event.targetId}` : "";
+  const labels: Record<string, string> = {
+    "auth.login_success": "Login berhasil",
+    "auth.login_failed": "Login gagal",
+    "admin.created": "Akun admin dibuat",
+    "admin.deleted": "Akun admin dihapus",
+    "admin.password_reset": "Password admin diubah",
+    "transaction.created": "Transaksi dibuat",
+    "transaction.updated": "Transaksi diperbarui",
+    "transaction.deleted": "Transaksi dihapus",
+    "data.exported": "Data transaksi diekspor",
+    "file.uploaded": "Berkas diunggah",
+    "file.deleted": "Berkas dihapus",
+  };
+  const title = labels[event.action] || event.action;
+  const reason = typeof event.metadata.reason === "string"
+    ? ` • ${event.metadata.reason === "invalid_credentials" ? "Kredensial tidak valid" : event.metadata.reason}`
+    : "";
+
+  return {
+    title,
+    description: `${actor} • ${event.status === "success" ? "Berhasil" : "Gagal"}${target}${reason}`,
+  };
+}
+
+function parseActivityDate(date: string, time = "") {
+  const normalizedDate = date.trim();
+  const dayFirstMatch = normalizedDate.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
+  const value = dayFirstMatch
+    ? `${dayFirstMatch[3].length === 2 ? `20${dayFirstMatch[3]}` : dayFirstMatch[3]}-${dayFirstMatch[2].padStart(2, "0")}-${dayFirstMatch[1].padStart(2, "0")}T${time || "00:00"}`
+    : `${normalizedDate}T${time || "00:00"}`;
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
 export default async function ActivityPage() {
   const financeRepo = getFinanceRepository();
   const fileRepo = getFileRepository();
@@ -32,6 +69,7 @@ export default async function ActivityPage() {
       color: tx.type === "Pemasukan" ? "#19C59E" : "#F43F5E",
       bg: tx.type === "Pemasukan" ? "rgba(25, 197, 158, 0.12)" : "rgba(244, 63, 94, 0.12)",
       border: tx.type === "Pemasukan" ? "rgba(25, 197, 158, 0.25)" : "rgba(244, 63, 94, 0.25)",
+      sortTimestamp: parseActivityDate(tx.date, tx.time),
     })),
     ...fileRes.data.map((f) => ({
       id: `act-file-${f.id}`,
@@ -44,20 +82,25 @@ export default async function ActivityPage() {
       color: "#3B82F6",
       bg: "rgba(59, 130, 246, 0.12)",
       border: "rgba(59, 130, 246, 0.25)",
+      sortTimestamp: parseActivityDate(f.uploadTime),
     })),
-    ...auditEvents.map((event) => ({
-      id: `audit-${event.id}`,
-      type: event.category === "auth" ? ("system" as const) : event.category === "drive" ? ("drive" as const) : ("finance" as const),
-      title: event.action,
-      description: `${event.actorEmail || "Sistem"} • Status: ${event.status}${event.targetId ? ` • ID: ${event.targetId}` : ""}`,
-      date: new Date(event.createdAt).toLocaleDateString("id-ID"),
-      time: new Date(event.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
-      iconType: event.category === "auth" ? ("system" as const) : event.category === "drive" ? ("drive" as const) : ("finance" as const),
-      color: event.status === "success" ? "#19C59E" : "#F43F5E",
-      bg: event.status === "success" ? "rgba(25, 197, 158, 0.12)" : "rgba(244, 63, 94, 0.12)",
-      border: event.status === "success" ? "rgba(25, 197, 158, 0.25)" : "rgba(244, 63, 94, 0.25)",
-    })),
-  ];
+    ...auditEvents.map((event) => {
+      const description = describeAuditEvent(event);
+      return {
+        id: `audit-${event.id}`,
+        type: event.category === "auth" ? ("system" as const) : event.category === "drive" ? ("drive" as const) : ("finance" as const),
+        title: description.title,
+        description: description.description,
+        date: new Date(event.createdAt).toLocaleDateString("id-ID"),
+        time: new Date(event.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+        iconType: event.category === "auth" ? ("system" as const) : event.category === "drive" ? ("drive" as const) : ("finance" as const),
+        color: event.status === "success" ? "#19C59E" : "#F43F5E",
+        bg: event.status === "success" ? "rgba(25, 197, 158, 0.12)" : "rgba(244, 63, 94, 0.12)",
+        border: event.status === "success" ? "rgba(25, 197, 158, 0.25)" : "rgba(244, 63, 94, 0.25)",
+        sortTimestamp: new Date(event.createdAt).getTime(),
+      };
+    }),
+  ].sort((a, b) => b.sortTimestamp - a.sortTimestamp);
 
   return (
     <div className="space-y-6">
