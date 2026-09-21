@@ -1,11 +1,26 @@
 import { Shield, Key, Database, Bot, CheckCircle2, Lock, Sparkles, Settings } from "lucide-react";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { UserManagement } from "@/components/settings/user-management";
 
 export const dynamic = "force-dynamic";
 
-export default function SettingsPage() {
-  const allowlist = (process.env.ALLOWED_ADMIN_EMAILS || "admin@kaviverse.local")
+export default async function SettingsPage() {
+  const allowlist = (process.env.ALLOWED_ADMIN_EMAILS || "")
     .split(",")
     .map((e) => e.trim());
+  let users: { id: string; email?: string; created_at: string }[] = [];
+  let userError: string | null = null;
+
+  try {
+    const { data, error } = await createAdminClient().auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    if (error) userError = error.message;
+    users = data.users.map(({ id, email, created_at }) => ({ id, email, created_at }));
+  } catch (error) {
+    userError = error instanceof Error ? error.message : "Daftar akun tidak dapat dimuat.";
+  }
 
   const integrations = [
     {
@@ -124,6 +139,32 @@ export default function SettingsPage() {
             </span>
           ))}
         </div>
+      </div>
+
+      {/* Integrations Status */}
+      <div
+        className="rounded-2xl p-6 relative overflow-hidden space-y-4"
+        style={{
+          background: "rgba(14, 20, 32, 0.75)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 4px 20px -8px rgba(0, 0, 0, 0.3)",
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <Key className="w-5 h-5 text-accent" />
+          <h2 className="text-sm font-bold text-text-primary">Manajemen Akun Login</h2>
+        </div>
+        <p className="text-xs text-text-muted leading-relaxed">
+          Buat atau hapus akun Supabase Auth. Setelah membuat akun, tambahkan emailnya ke ALLOWED_ADMIN_EMAILS di Vercel lalu redeploy.
+        </p>
+        {userError ? (
+          <p className="rounded-md border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
+            {userError} Tambahkan SUPABASE_SERVICE_ROLE_KEY di environment Production Vercel untuk mengaktifkan fitur ini.
+          </p>
+        ) : (
+          <UserManagement users={users} allowedEmails={allowlist.map((email) => email.toLowerCase()).filter(Boolean)} />
+        )}
       </div>
 
       {/* Integrations Status */}
