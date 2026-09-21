@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { isEmailAllowed } from "@/lib/utils/security";
 import { createClient } from "@/lib/supabase/server";
+import { recordAuditEvent } from "@/lib/audit/repository";
 
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
@@ -15,6 +16,13 @@ export async function loginAction(formData: FormData) {
 
   // Verify email against admin allowlist
   if (!isEmailAllowed(email)) {
+    await recordAuditEvent({
+      category: "auth",
+      action: "auth.login_failed",
+      status: "failure",
+      actorEmail: email,
+      metadata: { reason: "email_not_allowlisted" },
+    });
     return {
       error: "Akses ditolak. Email Anda tidak terdaftar dalam allowlist admin Kaviverse.",
     };
@@ -48,9 +56,28 @@ export async function loginAction(formData: FormData) {
     });
 
     if (error) {
+      await recordAuditEvent({
+        category: "auth",
+        action: "auth.login_failed",
+        status: "failure",
+        actorEmail: email,
+        metadata: { reason: "invalid_credentials" },
+      });
+      if (error.message === "Invalid login credentials") {
+        return {
+          error:
+            "Email atau password salah. Gunakan kredensial user yang terdaftar di Supabase Auth production.",
+        };
+      }
       return { error: error.message || "Gagal masuk. Periksa email dan password Anda." };
     }
 
+    await recordAuditEvent({
+      category: "auth",
+      action: "auth.login_success",
+      status: "success",
+      actorEmail: email,
+    });
     redirect("/dashboard");
   } catch (err: unknown) {
     // Re-throw next navigation redirects

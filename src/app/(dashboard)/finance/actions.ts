@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getFinanceRepository } from "@/lib/repositories/factory";
 import { requireAdmin } from "@/lib/auth/admin";
+import { recordAuditEvent } from "@/lib/audit/repository";
 import {
   createTransactionSchema,
   updateTransactionSchema,
@@ -43,6 +44,14 @@ export async function createTransactionAction(input: CreateTransactionInput) {
     });
 
     revalidateAllFinancePaths();
+    await recordAuditEvent({
+      category: "finance",
+      action: "transaction.created",
+      status: "success",
+      targetType: "transaction",
+      targetId: transaction.id,
+      metadata: { amount: validated.amount, type: validated.type },
+    });
     return { success: true, transaction };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Gagal menambahkan transaksi.";
@@ -59,6 +68,13 @@ export async function updateTransactionAction(id: string, input: UpdateTransacti
     const transaction = await financeRepo.updateTransaction(id, validated);
 
     revalidateAllFinancePaths();
+    await recordAuditEvent({
+      category: "finance",
+      action: "transaction.updated",
+      status: "success",
+      targetType: "transaction",
+      targetId: id,
+    });
     return { success: true, transaction };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Gagal memperbarui transaksi.";
@@ -77,6 +93,13 @@ export async function deleteTransactionAction(id: string) {
     }
 
     revalidateAllFinancePaths();
+    await recordAuditEvent({
+      category: "finance",
+      action: "transaction.deleted",
+      status: "success",
+      targetType: "transaction",
+      targetId: id,
+    });
     return { success: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Gagal menghapus transaksi.";
@@ -145,6 +168,13 @@ export async function exportTransactionsCsvAction(): Promise<string> {
   await requireAdmin();
   const financeRepo = getFinanceRepository();
   const { data: transactions } = await financeRepo.getTransactions({ limit: 10000 });
+  await recordAuditEvent({
+    category: "finance",
+    action: "data.exported",
+    status: "success",
+    targetType: "transactions",
+    metadata: { count: transactions.length, format: "csv" },
+  });
 
   // Add UTF-8 BOM for Microsoft Excel compatibility
   let csv = "\ufeff";

@@ -11,11 +11,12 @@ import {
   ChevronRight,
   Filter,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 
 export interface ActivityEventItem {
   id: string;
-  type: "finance" | "drive";
+  type: "finance" | "drive" | "system";
   title: string;
   description: string;
   date: string;
@@ -23,7 +24,7 @@ export interface ActivityEventItem {
   color: string;
   bg: string;
   border: string;
-  iconType: "finance" | "drive";
+  iconType: "finance" | "drive" | "system";
 }
 
 interface ActivityTimelineClientProps {
@@ -31,7 +32,7 @@ interface ActivityTimelineClientProps {
 }
 
 export function ActivityTimelineClient({ events }: ActivityTimelineClientProps) {
-  const [filterType, setFilterType] = React.useState<"ALL" | "finance" | "drive">("ALL");
+  const [filterType, setFilterType] = React.useState<"ALL" | "finance" | "drive" | "system">("ALL");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const pageSize = 10; // Exactly 10 items per slide / page
@@ -75,6 +76,7 @@ export function ActivityTimelineClient({ events }: ActivityTimelineClientProps) 
       ALL: events.length,
       finance: events.filter((e) => e.type === "finance").length,
       drive: events.filter((e) => e.type === "drive").length,
+      system: events.filter((e) => e.type === "system").length,
     };
   }, [events]);
 
@@ -94,6 +96,7 @@ export function ActivityTimelineClient({ events }: ActivityTimelineClientProps) 
             { key: "ALL", label: "Semua", count: counts.ALL },
             { key: "finance", label: "Keuangan", count: counts.finance },
             { key: "drive", label: "Sikavi Drive", count: counts.drive },
+            { key: "system", label: "Keamanan", count: counts.system },
           ].map((tab) => {
             const isSelected = filterType === tab.key;
             return (
@@ -178,6 +181,8 @@ export function ActivityTimelineClient({ events }: ActivityTimelineClientProps) 
                   >
                     {isFinance ? (
                       <Receipt className="w-4 h-4" />
+                    ) : ev.iconType === "system" ? (
+                      <ShieldCheck className="w-4 h-4" />
                     ) : (
                       <FolderArchive className="w-4 h-4" />
                     )}

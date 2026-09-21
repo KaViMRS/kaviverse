@@ -1,6 +1,7 @@
 import { getFinanceRepository, getFileRepository } from "@/lib/repositories/factory";
 import { formatIDR } from "@/lib/utils/formatters";
 import { Clock } from "lucide-react";
+import { getAuditEvents } from "@/lib/audit/repository";
 import {
   ActivityTimelineClient,
   ActivityEventItem,
@@ -12,9 +13,10 @@ export default async function ActivityPage() {
   const financeRepo = getFinanceRepository();
   const fileRepo = getFileRepository();
 
-  const [txRes, fileRes] = await Promise.all([
+  const [txRes, fileRes, auditEvents] = await Promise.all([
     financeRepo.getTransactions({ limit: 50 }),
     fileRepo.getFiles({ limit: 50 }),
+    getAuditEvents(50),
   ]);
 
   // Combine into unified activity timeline
@@ -42,6 +44,18 @@ export default async function ActivityPage() {
       color: "#3B82F6",
       bg: "rgba(59, 130, 246, 0.12)",
       border: "rgba(59, 130, 246, 0.25)",
+    })),
+    ...auditEvents.map((event) => ({
+      id: `audit-${event.id}`,
+      type: event.category === "auth" ? ("system" as const) : event.category === "drive" ? ("drive" as const) : ("finance" as const),
+      title: event.action,
+      description: `${event.actorEmail || "Sistem"} • Status: ${event.status}${event.targetId ? ` • ID: ${event.targetId}` : ""}`,
+      date: new Date(event.createdAt).toLocaleDateString("id-ID"),
+      time: new Date(event.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      iconType: event.category === "auth" ? ("system" as const) : event.category === "drive" ? ("drive" as const) : ("finance" as const),
+      color: event.status === "success" ? "#19C59E" : "#F43F5E",
+      bg: event.status === "success" ? "rgba(25, 197, 158, 0.12)" : "rgba(244, 63, 94, 0.12)",
+      border: event.status === "success" ? "rgba(25, 197, 158, 0.25)" : "rgba(244, 63, 94, 0.25)",
     })),
   ];
 

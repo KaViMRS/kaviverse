@@ -52,7 +52,6 @@ export function LoginForm() {
             type="email"
             autoComplete="email"
             required
-            defaultValue="admin@kaviverse.local"
             placeholder="nama@domain.com"
             className="w-full pl-9 pr-3 py-2 bg-surface text-text-primary placeholder:text-text-muted text-sm rounded-md border border-border focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors"
           />
@@ -79,7 +78,6 @@ export function LoginForm() {
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             required
-            defaultValue="password123"
             placeholder="••••••••"
             className="w-full pl-9 pr-10 py-2 bg-surface text-text-primary placeholder:text-text-muted text-sm rounded-md border border-border focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors"
           />
