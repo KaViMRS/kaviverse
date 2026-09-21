@@ -1,0 +1,186 @@
+import { Shield, Key, Database, Bot, CheckCircle2, Lock, Sparkles, Settings } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+export default function SettingsPage() {
+  const allowlist = (process.env.ALLOWED_ADMIN_EMAILS || "admin@kaviverse.local")
+    .split(",")
+    .map((e) => e.trim());
+
+  const integrations = [
+    {
+      name: "Google Sheets API Gateway",
+      sub: "PetugasData, Input, Tagihan",
+      status: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ? "Configured" : "Mock Standby Active",
+      icon: Database,
+      color: "#19C59E",
+    },
+    {
+      name: "Supabase SSR Authentication",
+      sub: "Secure Cookie Session Token",
+      status: "Active (Encrypted)",
+      icon: Shield,
+      color: "#3B82F6",
+    },
+    {
+      name: "Telegram Bot API (Supergroup)",
+      sub: "@inputdata_bot & @PetugasData_Bot",
+      status: process.env.TELEGRAM_BOT_TOKEN ? "Connected" : "Web Direct Ready",
+      icon: Bot,
+      color: "#7C5CFF",
+    },
+    {
+      name: "Formula Injection Shield",
+      sub: "RFC 4180 CSV & Sheets Sanitizer",
+      status: "Enforced",
+      icon: Lock,
+      color: "#19C59E",
+    },
+  ];
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      {/* Header Banner */}
+      <div
+        className="rounded-2xl p-5 relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        style={{
+          background: "rgba(14, 20, 32, 0.75)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 4px 20px -8px rgba(0, 0, 0, 0.3)",
+        }}
+      >
+        <div
+          className="absolute top-0 inset-x-0 h-[2px]"
+          style={{
+            background: "linear-gradient(90deg, transparent, #19C59E, #3B82F6, transparent)",
+          }}
+        />
+
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-accent shrink-0"
+            style={{
+              background: "rgba(25, 197, 158, 0.12)",
+              border: "1px solid rgba(25, 197, 158, 0.28)",
+              boxShadow: "0 0 20px -4px rgba(25, 197, 158, 0.3)",
+            }}
+          >
+            <Settings className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-bold text-text-primary tracking-tight">
+                Pengaturan Sistem &amp; Keamanan
+              </h1>
+              <span
+                className="text-[10px] font-extrabold text-accent px-2.5 py-0.5 rounded-full"
+                style={{
+                  background: "rgba(25, 197, 158, 0.12)",
+                  border: "1px solid rgba(25, 197, 158, 0.25)",
+                }}
+              >
+                Security Center
+              </span>
+            </div>
+            <p className="text-xs text-text-muted mt-0.5">
+              Konfigurasi kontrol akses admin, proteksi injeksi rumus, dan status integrasi cloud.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Allowlist */}
+      <div
+        className="rounded-2xl p-6 relative overflow-hidden space-y-4"
+        style={{
+          background: "rgba(14, 20, 32, 0.75)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 4px 20px -8px rgba(0, 0, 0, 0.3)",
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <Shield className="w-5 h-5 text-accent" />
+          <h2 className="text-sm font-bold text-text-primary">
+            Admin Email Allowlist (Akses Terbatas)
+          </h2>
+        </div>
+        <p className="text-xs text-text-muted leading-relaxed">
+          Hanya alamat email berikut yang diizinkan oleh sistem otorisasi untuk mengakses dashboard, memodifikasi transaksi, dan mengunggah berkas:
+        </p>
+        <div className="flex flex-wrap gap-2.5 pt-1">
+          {allowlist.map((email) => (
+            <span
+              key={email}
+              className="px-3 py-1.5 rounded-xl text-xs font-mono text-text-primary flex items-center gap-2"
+              style={{
+                background: "rgba(25, 197, 158, 0.08)",
+                border: "1px solid rgba(25, 197, 158, 0.22)",
+              }}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
+              <span>{email}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Integrations Status */}
+      <div
+        className="rounded-2xl p-6 relative overflow-hidden space-y-4"
+        style={{
+          background: "rgba(14, 20, 32, 0.75)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 4px 20px -8px rgba(0, 0, 0, 0.3)",
+        }}
+      >
+        <h2 className="text-sm font-bold text-text-primary">
+          Status Integrasi Layanan Backend
+        </h2>
+        <div className="divide-y divide-white/[0.05]">
+          {integrations.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.name}
+                className="py-3.5 flex items-center justify-between gap-3 text-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                    style={{
+                      background: "rgba(255, 255, 255, 0.04)",
+                      border: "1px solid rgba(255, 255, 255, 0.07)",
+                      color: item.color,
+                    }}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-text-primary block">
+                      {item.name}
+                    </span>
+                    <span className="text-[10px] text-text-muted">{item.sub}</span>
+                  </div>
+                </div>
+
+                <span
+                  className="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border"
+                  style={{
+                    background: "rgba(25, 197, 158, 0.1)",
+                    border: "1px solid rgba(25, 197, 158, 0.25)",
+                    color: "#19C59E",
+                  }}
+                >
+                  {item.status}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
