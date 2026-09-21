@@ -13,14 +13,15 @@ export function CashFlowChart({
   transactions,
 }: CashFlowChartProps) {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
+  const [periodMonths, setPeriodMonths] = React.useState<4 | 6 | 12>(4);
 
   const data = React.useMemo(() => {
     const now = new Date();
-    const months = Array.from({ length: 4 }, (_, index) => {
-      const date = new Date(now.getFullYear(), now.getMonth() - (3 - index), 1);
+    const months = Array.from({ length: periodMonths }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (periodMonths - 1 - index), 1);
       return {
         key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
-        period: index === 3
+        period: index === periodMonths - 1
           ? "Bln Ini"
           : date.toLocaleDateString("id-ID", { month: "short" }),
         income: 0,
@@ -44,11 +45,14 @@ export function CashFlowChart({
     }
 
     return months;
-  }, [transactions]);
+  }, [periodMonths, transactions]);
 
   const currentMonth = data[data.length - 1];
+  const previousMonth = data[data.length - 2];
   const netBalance = currentMonth.income - currentMonth.expense;
   const isPositive = netBalance >= 0;
+  const incomeTrend = getTrendPercentage(currentMonth.income, previousMonth?.income ?? 0);
+  const expenseTrend = getTrendPercentage(currentMonth.expense, previousMonth?.expense ?? 0);
 
   // Chart dimensions in SVG coordinates
   const svgWidth = 500;
@@ -117,8 +121,8 @@ export function CashFlowChart({
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-3 relative z-10">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 relative z-10">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center text-accent"
             style={{ background: "rgba(25,197,158,0.12)", border: "1px solid rgba(25,197,158,0.25)" }}
@@ -127,26 +131,54 @@ export function CashFlowChart({
           </div>
           <div>
             <h2 className="text-sm font-bold text-text-primary">Arus Kas</h2>
-            <p className="text-[10px] text-text-muted">4 bulan terakhir</p>
+            <p className="text-[10px] text-text-muted">{periodMonths} bulan terakhir</p>
           </div>
         </div>
 
-        {/* Net summary badge */}
-        <div
-          className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl"
-          style={{
-            background: isPositive ? "rgba(25,197,158,0.10)" : "rgba(244,63,94,0.10)",
-            border: isPositive ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(244,63,94,0.22)",
-            color: isPositive ? "#19C59E" : "#F43F5E",
-          }}
-        >
-          {isPositive ? (
-            <TrendingUp className="w-3.5 h-3.5" />
-          ) : (
-            <TrendingDown className="w-3.5 h-3.5" />
-          )}
-          <span>{isPositive ? "+" : ""}{formatCompactIDR(netBalance)}</span>
+          <div className="flex items-center gap-1 rounded-lg p-0.5 order-3 sm:order-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            {([4, 6, 12] as const).map((months) => (
+              <button
+                key={months}
+                type="button"
+                onClick={() => {
+                  setPeriodMonths(months);
+                  setHoveredIndex(null);
+                }}
+                className={`px-2 py-1 rounded-md text-[10px] font-bold transition-colors ${
+                  periodMonths === months
+                    ? "bg-brand-teal/15 text-brand-teal"
+                    : "text-text-muted hover:text-text-primary"
+                }`}
+                aria-pressed={periodMonths === months}
+              >
+                {months}B
+              </button>
+            ))}
+          </div>
+
+          {/* Net summary badge */}
+        <div className="ml-auto">
+          <div
+            className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl"
+            style={{
+              background: isPositive ? "rgba(25,197,158,0.10)" : "rgba(244,63,94,0.10)",
+              border: isPositive ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(244,63,94,0.22)",
+              color: isPositive ? "#19C59E" : "#F43F5E",
+            }}
+          >
+            {isPositive ? (
+              <TrendingUp className="w-3.5 h-3.5" />
+            ) : (
+              <TrendingDown className="w-3.5 h-3.5" />
+            )}
+            <span>{isPositive ? "+" : ""}{formatCompactIDR(netBalance)}</span>
+          </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-2 relative z-10">
+        <TrendBadge label="Pemasukan" value={incomeTrend} positiveIsUp />
+        <TrendBadge label="Pengeluaran" value={expenseTrend} positiveIsUp={false} />
       </div>
 
       {/* ── Native Interactive SVG Area Chart ── */}
@@ -348,6 +380,40 @@ export function CashFlowChart({
           <span className="text-text-muted font-medium">Pengeluaran</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function getTrendPercentage(current: number, previous: number) {
+  if (previous === 0) return current === 0 ? 0 : null;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+function TrendBadge({
+  label,
+  value,
+  positiveIsUp,
+}: {
+  label: string;
+  value: number | null;
+  positiveIsUp: boolean;
+}) {
+  const isUp = value !== null && value > 0;
+  const isGood = value === null || value === 0 || (positiveIsUp ? !isUp : isUp);
+  const text = value === null ? "Baru" : value === 0 ? "Stabil" : `${isUp ? "+" : ""}${value}%`;
+
+  return (
+    <div
+      className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-[10px]"
+      style={{
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      <span className="text-text-muted">{label}</span>
+      <span className={isGood ? "text-brand-teal font-bold" : "text-rose-400 font-bold"}>
+        {text}
+      </span>
     </div>
   );
 }
