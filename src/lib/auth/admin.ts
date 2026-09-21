@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { isEmailAllowed } from "@/lib/utils/security";
+import { hasAdminRole } from "@/lib/utils/security";
 
 export async function isAdminAuthenticated(): Promise<boolean> {
   const isMockMode =
@@ -17,7 +17,7 @@ export async function isAdminAuthenticated(): Promise<boolean> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return Boolean(user && isEmailAllowed(user.email));
+  return Boolean(user && hasAdminRole(user));
 }
 
 export async function requireAdmin(): Promise<void> {

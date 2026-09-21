@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isEmailAllowed } from "../utils/security";
+import { hasAdminRole } from "../utils/security";
 
 function withSecurityHeaders(response: NextResponse) {
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -111,7 +111,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user) {
     // Enforce admin allowlist
-    if (!isEmailAllowed(user.email)) {
+    if (!hasAdminRole(user)) {
       url.pathname = "/login";
       url.searchParams.set("error", "unauthorized_email");
       const redirectResponse = NextResponse.redirect(url);

@@ -50,21 +50,8 @@ export function sanitizeTelegramUrl(
   return `https://t.me/c/${cleanChatId}/${cleanTopicId}/${cleanMessageId}`;
 }
 
-/**
- * Validates whether an email address is in the authorized admin allowlist.
- * Ensures strict zero-trust access control.
- */
-export function isEmailAllowed(email: string | null | undefined): boolean {
-  if (!email) return false;
-  const allowlist = (process.env.ALLOWED_ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-
-  // If no allowlist is configured, deny all in production or allow in local dev if configured
-  if (allowlist.length === 0) {
-    return false;
-  }
-
-  return allowlist.includes(email.trim().toLowerCase());
+export function hasAdminRole(user: {
+  app_metadata?: Record<string, unknown> | null;
+} | null | undefined): boolean {
+  return user?.app_metadata?.kaviverse_role === "admin";
 }

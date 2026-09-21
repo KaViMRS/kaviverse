@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { isEmailAllowed } from "@/lib/utils/security";
+import { hasAdminRole } from "@/lib/utils/security";
 import { createClient } from "@/lib/supabase/server";
 import { recordAuditEvent } from "@/lib/audit/repository";
 
@@ -12,20 +12,6 @@ export async function loginAction(formData: FormData) {
 
   if (!email || !password) {
     return { error: "Email dan password wajib diisi." };
-  }
-
-  // Verify email against admin allowlist
-  if (!isEmailAllowed(email)) {
-    await recordAuditEvent({
-      category: "auth",
-      action: "auth.login_failed",
-      status: "failure",
-      actorEmail: email,
-      metadata: { reason: "email_not_allowlisted" },
-    });
-    return {
-      error: "Akses ditolak. Email Anda tidak terdaftar dalam allowlist admin Kaviverse.",
-    };
   }
 
   const isMockMode =
@@ -50,7 +36,7 @@ export async function loginAction(formData: FormData) {
   // Live Supabase Auth
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -70,6 +56,18 @@ export async function loginAction(formData: FormData) {
         };
       }
       return { error: error.message || "Gagal masuk. Periksa email dan password Anda." };
+    }
+
+    if (!hasAdminRole(data.user)) {
+      await supabase.auth.signOut();
+      await recordAuditEvent({
+        category: "auth",
+        action: "auth.login_failed",
+        status: "failure",
+        actorEmail: email,
+        metadata: { reason: "user_not_authorized" },
+      });
+      return { error: "Akun berhasil diverifikasi, tetapi belum memiliki akses admin Kaviverse." };
     }
 
     await recordAuditEvent({

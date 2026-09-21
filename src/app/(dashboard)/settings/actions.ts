@@ -25,6 +25,7 @@ export async function createUserAction(formData: FormData) {
       email,
       password,
       email_confirm: true,
+      app_metadata: { kaviverse_role: "admin" },
     });
     if (error) return { error: error.message };
     await recordAuditEvent({
@@ -37,7 +38,7 @@ export async function createUserAction(formData: FormData) {
       metadata: { email },
     });
     revalidatePath("/settings");
-    return { success: "Akun berhasil dibuat. Tambahkan email ini ke ALLOWED_ADMIN_EMAILS di Vercel." };
+    return { success: "Akun berhasil dibuat dan langsung memiliki akses admin." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Gagal membuat akun." };
   }
@@ -64,7 +65,7 @@ export async function deleteUserAction(formData: FormData) {
       targetId: userId,
     });
     revalidatePath("/settings");
-    return { success: "Akun berhasil dihapus. Hapus emailnya juga dari ALLOWED_ADMIN_EMAILS di Vercel." };
+    return { success: "Akun berhasil dihapus dan aksesnya langsung dicabut." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Gagal menghapus akun." };
   }

@@ -3,9 +3,14 @@
 import * as React from "react";
 import { createUserAction, deleteUserAction, resetUserPasswordAction } from "@/app/(dashboard)/settings/actions";
 
-type User = { id: string; email?: string; created_at: string };
+type User = {
+  id: string;
+  email?: string;
+  created_at: string;
+  app_metadata?: Record<string, unknown>;
+};
 
-export function UserManagement({ users, allowedEmails }: { users: User[]; allowedEmails: string[] }) {
+export function UserManagement({ users }: { users: User[] }) {
   const [message, setMessage] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -31,7 +36,7 @@ export function UserManagement({ users, allowedEmails }: { users: User[]; allowe
               <p className="text-text-primary">{user.email}</p>
               <p className="text-xs text-text-muted">
                 Dibuat {new Date(user.created_at).toLocaleDateString("id-ID")} ·{" "}
-                {allowedEmails.includes((user.email || "").toLowerCase()) ? "Akses aktif" : "Belum diizinkan"}
+                {user.app_metadata?.kaviverse_role === "admin" ? "Akses aktif" : "Belum diizinkan"}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

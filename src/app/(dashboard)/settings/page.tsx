@@ -5,10 +5,7 @@ import { UserManagement } from "@/components/settings/user-management";
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const allowlist = (process.env.ALLOWED_ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim());
-  let users: { id: string; email?: string; created_at: string }[] = [];
+  let users: { id: string; email?: string; created_at: string; app_metadata?: Record<string, unknown> }[] = [];
   let userError: string | null = null;
 
   try {
@@ -17,7 +14,12 @@ export default async function SettingsPage() {
       perPage: 1000,
     });
     if (error) userError = error.message;
-    users = data.users.map(({ id, email, created_at }) => ({ id, email, created_at }));
+    users = data.users.map(({ id, email, created_at, app_metadata }) => ({
+      id,
+      email,
+      created_at,
+      app_metadata,
+    }));
   } catch (error) {
     userError = error instanceof Error ? error.message : "Daftar akun tidak dapat dimuat.";
   }
@@ -105,7 +107,7 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      {/* Admin Allowlist */}
+      {/* Admin Access */}
       <div
         className="rounded-2xl p-6 relative overflow-hidden space-y-4"
         style={{
@@ -118,26 +120,15 @@ export default async function SettingsPage() {
         <div className="flex items-center gap-2.5">
           <Shield className="w-5 h-5 text-accent" />
           <h2 className="text-sm font-bold text-text-primary">
-            Admin Email Allowlist (Akses Terbatas)
+            Akses Admin Otomatis
           </h2>
         </div>
         <p className="text-xs text-text-muted leading-relaxed">
-          Hanya alamat email berikut yang diizinkan oleh sistem otorisasi untuk mengakses dashboard, memodifikasi transaksi, dan mengunggah berkas:
+          Akses ditentukan oleh role admin di Supabase. Menambah atau menghapus akun di bawah ini langsung memperbarui hak akses tanpa perubahan environment variable atau redeploy.
         </p>
-        <div className="flex flex-wrap gap-2.5 pt-1">
-          {allowlist.map((email) => (
-            <span
-              key={email}
-              className="px-3 py-1.5 rounded-xl text-xs font-mono text-text-primary flex items-center gap-2"
-              style={{
-                background: "rgba(25, 197, 158, 0.08)",
-                border: "1px solid rgba(25, 197, 158, 0.22)",
-              }}
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-              <span>{email}</span>
-            </span>
-          ))}
+        <div className="flex items-center gap-2 text-xs text-accent">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>Role-based access control aktif</span>
         </div>
       </div>
 
@@ -156,14 +147,14 @@ export default async function SettingsPage() {
           <h2 className="text-sm font-bold text-text-primary">Manajemen Akun Login</h2>
         </div>
         <p className="text-xs text-text-muted leading-relaxed">
-          Buat atau hapus akun Supabase Auth. Setelah membuat akun, tambahkan emailnya ke ALLOWED_ADMIN_EMAILS di Vercel lalu redeploy.
+          Buat, reset, atau hapus akun admin secara langsung. Perubahan akses otomatis berlaku tanpa mengubah Vercel.
         </p>
         {userError ? (
           <p className="rounded-md border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
             {userError} Tambahkan SUPABASE_SERVICE_ROLE_KEY di environment Production Vercel untuk mengaktifkan fitur ini.
           </p>
         ) : (
-          <UserManagement users={users} allowedEmails={allowlist.map((email) => email.toLowerCase()).filter(Boolean)} />
+          <UserManagement users={users} />
         )}
       </div>
 
