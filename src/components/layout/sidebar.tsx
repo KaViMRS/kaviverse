@@ -24,6 +24,7 @@ import {
   Activity,
   Sparkles,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 
 interface NavItem {
@@ -94,9 +95,17 @@ const sectionColorMap: Record<string, { dot: string; text: string }> = {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [openSections, setOpenSections] = React.useState<Record<string, boolean>>(() => ({
+    KEUANGAN: pathname.startsWith("/finance"),
+    "SIKAVI DRIVE": pathname.startsWith("/drive"),
+  }));
+
+  function toggleSection(title: string) {
+    setOpenSections((current) => ({ ...current, [title]: !current[title] }));
+  }
 
   return (
-    <aside className="hidden md:flex flex-col w-[240px] shrink-0 h-screen sticky top-0 z-20 overflow-hidden"
+    <aside className="hidden md:flex flex-col fixed inset-y-0 left-0 w-[240px] h-screen z-30 overflow-hidden"
       style={{
         background: "rgba(8, 12, 18, 0.85)",
         backdropFilter: "blur(24px) saturate(200%)",
@@ -162,14 +171,41 @@ export function Sidebar() {
           return (
             <div key={section.title}>
               {/* Section label */}
-              <div className="flex items-center gap-2 px-2 mb-1.5">
+              {section.title === "KEUANGAN" || section.title === "SIKAVI DRIVE" ? (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.title)}
+                  className="flex items-center justify-between w-full px-2 mb-1.5 text-left"
+                  aria-expanded={openSections[section.title] ?? false}
+                >
+                  <span className="flex items-center gap-2">
+                    {colors && <span className={`w-1 h-1 rounded-full ${colors.dot} shrink-0`} />}
+                    <span className="text-[9.5px] font-bold text-text-muted/70 tracking-[0.12em] uppercase">
+                      {section.title}
+                    </span>
+                  </span>
+                  {openSections[section.title] ? (
+                    <ChevronDown className="w-3 h-3 text-text-muted" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3 text-text-muted" />
+                  )}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 px-2 mb-1.5">
                 {colors && <span className={`w-1 h-1 rounded-full ${colors.dot} shrink-0`} />}
                 <span className="text-[9.5px] font-bold text-text-muted/70 tracking-[0.12em] uppercase">
                   {section.title}
                 </span>
-              </div>
+                </div>
+              )}
 
-              <div className="space-y-0.5">
+              <div className={cn(
+                "space-y-0.5 overflow-hidden transition-[max-height,opacity] duration-200",
+                (section.title === "KEUANGAN" || section.title === "SIKAVI DRIVE") &&
+                  !openSections[section.title]
+                  ? "max-h-0 opacity-0"
+                  : "max-h-96 opacity-100"
+              )}>
                 {section.items.map((item) => {
                   const isExact = pathname === item.href;
                   const isChild =
