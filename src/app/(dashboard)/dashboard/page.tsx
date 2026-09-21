@@ -15,7 +15,7 @@ export default async function DashboardPage() {
 
   const [balanceSummary, transactionsResult, filesResult] = await Promise.all([
     financeRepo.getAccountBalances(),
-    financeRepo.getTransactions({ limit: 10 }),
+    financeRepo.getTransactions({ limit: 10000 }),
     fileRepo.getFiles({ limit: 8 }),
   ]);
 
@@ -39,8 +39,7 @@ export default async function DashboardPage() {
         {/* Cash flow chart (6 cols) */}
         <div className="lg:col-span-6">
           <CashFlowChart
-            monthlyIncome={balanceSummary.monthlyIncome}
-            monthlyExpense={balanceSummary.monthlyExpense}
+            transactions={transactionsResult.data}
           />
         </div>
 

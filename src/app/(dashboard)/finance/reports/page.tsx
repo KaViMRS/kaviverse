@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic";
 
 export default async function ReportsPage() {
   const financeRepo = getFinanceRepository();
-  const summary = await financeRepo.getAccountBalances();
+  const [summary, transactions] = await Promise.all([
+    financeRepo.getAccountBalances(),
+    financeRepo.getTransactions({ limit: 10000 }),
+  ]);
 
   const savingsRate =
     summary.monthlyIncome > 0
@@ -88,8 +91,7 @@ export default async function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-8">
           <CashFlowChart
-            monthlyIncome={summary.monthlyIncome}
-            monthlyExpense={summary.monthlyExpense}
+            transactions={transactions.data}
           />
         </div>
 

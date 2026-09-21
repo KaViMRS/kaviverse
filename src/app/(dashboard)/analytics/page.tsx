@@ -9,8 +9,9 @@ export default async function AnalyticsPage() {
   const financeRepo = getFinanceRepository();
   const fileRepo = getFileRepository();
 
-  const [summary, files] = await Promise.all([
+  const [summary, transactions, files] = await Promise.all([
     financeRepo.getAccountBalances(),
+    financeRepo.getTransactions({ limit: 10000 }),
     fileRepo.getFiles({ limit: 500 }),
   ]);
 
@@ -153,8 +154,7 @@ export default async function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-8">
           <CashFlowChart
-            monthlyIncome={summary.monthlyIncome}
-            monthlyExpense={summary.monthlyExpense}
+            transactions={transactions.data}
           />
         </div>
 

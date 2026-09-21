@@ -2,46 +2,52 @@
 
 import * as React from "react";
 import { formatCompactIDR, formatIDR } from "@/lib/utils/formatters";
+import { Transaction } from "@/types/transaction";
 import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 
 interface CashFlowChartProps {
-  monthlyIncome: number;
-  monthlyExpense: number;
+  transactions: Transaction[];
 }
 
 export function CashFlowChart({
-  monthlyIncome,
-  monthlyExpense,
+  transactions,
 }: CashFlowChartProps) {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
 
-  const incomeBase = Math.max(0, monthlyIncome);
-  const expenseBase = Math.max(0, monthlyExpense);
+  const data = React.useMemo(() => {
+    const now = new Date();
+    const months = Array.from({ length: 4 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (3 - index), 1);
+      return {
+        key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+        period: index === 3
+          ? "Bln Ini"
+          : date.toLocaleDateString("id-ID", { month: "short" }),
+        income: 0,
+        expense: 0,
+      };
+    });
+    const monthMap = new Map(months.map((month) => [month.key, month]));
 
-  const data = [
-    {
-      period: "3 Bln Lalu",
-      income: Math.round(incomeBase * 0.72) || 75000,
-      expense: Math.round(expenseBase * 0.68) || 120000,
-    },
-    {
-      period: "2 Bln Lalu",
-      income: Math.round(incomeBase * 0.88) || 90000,
-      expense: Math.round(expenseBase * 0.82) || 140000,
-    },
-    {
-      period: "Bln Lalu",
-      income: Math.round(incomeBase * 0.85) || 110000,
-      expense: Math.round(expenseBase * 0.9) || 160000,
-    },
-    {
-      period: "Bln Ini",
-      income: incomeBase || 128000,
-      expense: expenseBase || 193328,
-    },
-  ];
+    for (const transaction of transactions) {
+      const date = new Date(`${transaction.date}T${transaction.time || "00:00:00"}`);
+      if (Number.isNaN(date.getTime())) continue;
+      const month = monthMap.get(
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+      );
+      if (!month) continue;
+      if (transaction.type === "Pemasukan") {
+        month.income += transaction.amount;
+      } else {
+        month.expense += transaction.amount;
+      }
+    }
 
-  const netBalance = monthlyIncome - monthlyExpense;
+    return months;
+  }, [transactions]);
+
+  const currentMonth = data[data.length - 1];
+  const netBalance = currentMonth.income - currentMonth.expense;
   const isPositive = netBalance >= 0;
 
   // Chart dimensions in SVG coordinates
