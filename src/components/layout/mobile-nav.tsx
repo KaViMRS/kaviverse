@@ -19,7 +19,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-2 py-2 flex items-center justify-around shadow-2xl"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-1.5 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex items-center justify-around shadow-2xl"
       style={{
         background: "rgba(8, 12, 18, 0.92)",
         backdropFilter: "blur(20px)",
@@ -38,7 +38,7 @@ export function MobileNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center justify-center py-1 px-3 rounded-xl text-[10px] font-bold transition-all relative",
+              "flex-1 min-h-11 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-[10px] font-bold transition-all relative",
               isActive ? "text-accent" : "text-text-muted hover:text-text-secondary"
             )}
           >

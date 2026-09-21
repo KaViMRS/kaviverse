@@ -183,13 +183,13 @@ export function TransactionTableInteractive({
       </div>
 
       {/* Filter Row: Type Pills & Dropdowns */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 pt-1">
         {/* Type Pills */}
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-3 gap-1.5 w-full sm:flex sm:items-center sm:w-auto sm:gap-2">
           <button
             type="button"
             onClick={() => setTypeFilter("ALL")}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+            className="px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-semibold transition-all whitespace-nowrap"
             style={{
               background:
                 typeFilter === "ALL"
@@ -207,7 +207,7 @@ export function TransactionTableInteractive({
           <button
             type="button"
             onClick={() => setTypeFilter("Pengeluaran")}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+            className="px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-semibold transition-all flex items-center justify-center gap-1 whitespace-nowrap"
             style={{
               background:
                 typeFilter === "Pengeluaran"
@@ -226,7 +226,7 @@ export function TransactionTableInteractive({
           <button
             type="button"
             onClick={() => setTypeFilter("Pemasukan")}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+            className="px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-semibold transition-all flex items-center justify-center gap-1 whitespace-nowrap"
             style={{
               background:
                 typeFilter === "Pemasukan"
@@ -245,12 +245,12 @@ export function TransactionTableInteractive({
         </div>
 
         {/* Secondary Select Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* Category Dropdown */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-xl text-text-secondary cursor-pointer outline-none transition-all"
+            className="w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs rounded-xl text-text-secondary cursor-pointer outline-none transition-all"
             style={{
               background: "rgba(14, 20, 32, 0.75)",
               border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -268,7 +268,7 @@ export function TransactionTableInteractive({
           <select
             value={accountFilter}
             onChange={(e) => setAccountFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-xl text-text-secondary cursor-pointer outline-none transition-all"
+            className="w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs rounded-xl text-text-secondary cursor-pointer outline-none transition-all"
             style={{
               background: "rgba(14, 20, 32, 0.75)",
               border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -286,7 +286,7 @@ export function TransactionTableInteractive({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-xl text-text-secondary cursor-pointer outline-none transition-all"
+            className="w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs rounded-xl text-text-secondary cursor-pointer outline-none transition-all"
             style={{
               background: "rgba(14, 20, 32, 0.75)",
               border: "1px solid rgba(255, 255, 255, 0.08)",
